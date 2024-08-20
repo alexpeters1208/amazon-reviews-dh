@@ -1,0 +1,10 @@
+services:
+  deephaven:
+    build: .
+    ports:
+      - '${DEEPHAVEN_PORT:-10000}:10000'
+    volumes:
+      - ./data:/data
+    environment:
+      - PYTHONPATH=${PYTHONPATH}:/data/storage/notebooks
+      - START_OPTS=-Xmx32g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler

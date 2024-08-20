@@ -1,0 +1,14 @@
+# ML training requirements
+numpy
+pandas
+nltk
+scikit-learn
+transformers
+torch
+
+# Amazon dataset requirements
+datasets
+
+# DH requirements
+deephaven-plugin-plotly-express
+deephaven-plugin-ui
