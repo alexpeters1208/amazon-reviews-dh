@@ -7,22 +7,18 @@
 # ML imports
 import logging
 import random
-import pandas as pd
 import numpy as np
 import nltk
 import re
 
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
-
+from sklearn.metrics import accuracy_score
 from transformers import BertTokenizer, BertForSequenceClassification
-from torch.utils.data import DataLoader, TensorDataset, random_split
+from torch.utils.data import DataLoader, TensorDataset
 import torch
 
 # Deephaven imports
 from deephaven import read_csv
 import deephaven.numpy as dhnp
-import deephaven.pandas as dhpd
 
 # download stopwords from nltk
 nltk.download('stopwords')
