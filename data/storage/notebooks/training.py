@@ -44,6 +44,7 @@ def clean_text(text) -> str:
     words = [word for word in words if word not in stop_words]  # Remove stop words
     return ' '.join(words)
 
+# create new column containing the cleaned text
 essays = essays.update("CleanText = clean_text(text)")
 
 # split tables into training and validation sets
