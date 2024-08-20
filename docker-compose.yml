@@ -7,4 +7,4 @@ services:
       - ./data:/data
     environment:
       - PYTHONPATH=${PYTHONPATH}:/data/storage/notebooks
-      - START_OPTS=-Xmx32g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler
+      - START_OPTS=-Xmx24g -DAuthHandlers=io.deephaven.auth.AnonymousAuthenticationHandler
