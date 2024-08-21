@@ -38,28 +38,10 @@ tokenizer = BertTokenizer.from_pretrained(
     clean_up_tokenization_spaces=True
 )
 
-# prediction function
-def detect_bot(text):
-    # tokenize text
-    tokenized_text = tokenizer(text.tolist(), padding=True, truncation=True, return_tensors='pt')
-
-    # Move input tensor to the same device as the model
-    tokenized_text = {key: value.to(device) for key, value in tokenized_text.items()}
-
-    # Generate predictions using your trained model
-    with torch.no_grad():
-        outputs = model(**tokenized_text)
-        logits = outputs.logits
-
-    # Assuming the first column of logits corresponds to the negative class (non-AI-generated) 
-    # and the second column corresponds to the positive class (AI-generated)
-    predictions = torch.softmax(logits, dim=1)[:, 1].cpu().numpy()
-
-    return predictions
-
 # load ticking reviews dataset and item metadata
 from data import reviews_ticking
 
+# create table publisher, and blink table that data will be published to
 preds_blink, preds_publisher = table_publisher(
     "DetectorOutput", {
         "rating": dtypes.double,
@@ -70,6 +52,26 @@ preds_blink, preds_publisher = table_publisher(
     },
 )
 
+# function to perform inference on a given set of inputs
+def detect_bot(text):
+    # tokenize text
+    tokenized_text = tokenizer(text.tolist(), padding=True, truncation=True, return_tensors='pt')
+
+    # move input tensor to the same device as the model
+    tokenized_text = {key: value.to(device) for key, value in tokenized_text.items()}
+
+    # generate predictions using trained model
+    with torch.no_grad():
+        outputs = model(**tokenized_text)
+        logits = outputs.logits
+
+    # the first column of logits corresponds to the negative class (non-AI-generated) 
+    # and the second column corresponds to the positive class (AI-generated)
+    predictions = torch.softmax(logits, dim=1)[:, 1].cpu().numpy()
+
+    return predictions
+
+# function to perform inference and publish the results to a new blink table with table publisher
 def compute_and_publish_inference(inputs, features):
 
     # get outputs from AI model
@@ -94,6 +96,7 @@ def compute_and_publish_inference(inputs, features):
 # use ThreadPoolExecutor to offload inference to separate threads that will do work as able
 executor = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 
+# function that table listener will call as new data rolls in
 def on_update(update: TableUpdate, is_replay: bool) -> None:
     input_col = "text"
     feature_cols = ["rating", "parent_asin", "user_id", "timestamp"]
@@ -118,6 +121,6 @@ def on_update(update: TableUpdate, is_replay: bool) -> None:
     # submit inference work to ThreadPoolExecutor
     executor.submit(compute_and_publish_inference, inputs, features)
 
-
+# listen to ticking source and publish inference
 handle = listen(reviews_ticking, on_update, do_replay=True)
 preds = blink_to_append_only(preds_blink)
